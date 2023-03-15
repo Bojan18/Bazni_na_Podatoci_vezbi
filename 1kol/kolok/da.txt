@@ -1,0 +1,154 @@
+--Задача 1 (8 поени): Креирај ги табелите според следниве спецификации (се извршува на 
+--schema ispitna):
+--artikal(id_artikal, ime, opis)
+--smetka( id_ smetka, vreme_smetka, status_smetka) (статус на сметка е текст со произволна 
+--големина)
+--artikal_smetka(id_artikal*(artikal), id_smetka*(smetka), kolicina)
+
+create table artikal_a(
+	id_artikal integer primary key,
+	ime varchar(100) not null,
+	opis varchar(100)
+)
+
+create table smetka_a(
+	id_smetka integer primary key,
+	vreme_smetka timestamp not null,
+	status_smetka varchar(100) not null
+)
+
+create table artikal_smetka_a(
+	id_artikal integer not null,
+	id_smetka integer not null,
+	kolicina integer not null,
+	constraint pk_artikal_smetka_a primary key (id_artikal, id_smetka),
+	constraint fk_artikal_a foreign key (id_artikal) references artikal_a(id_artikal),
+	constraint fk_smetka_a foreign key (id_smetka) references smetka_a(id_smetka)
+)
+
+--Задача 2 (5 поени): Во табелата артикал вметни податоци за пет произволни производи. 
+--Вметнете и една сметка со најмалку три артикли.
+
+select * from artikal_a
+
+insert into artikal_a(id_artikal,ime,opis)
+	values(1, 'bluza', 'bluska'),
+	(2, 'farmerki', 'denim'),
+	(3, 'kapa', 'just a hat'),
+	(4, 'patki', 'adidas'),
+	(5, 'corapi', 'nike')
+
+select * from smetka_a
+
+insert into smetka_a(id_smetka, vreme_smetka, status_smetka)
+	values(100, '11-21-2020 15:00:00', 'platena'),
+	(200, '11-15-2020 12:32:15', 'cekanje'),
+	(300, '10-21-2022 17:15:45', 'cekanje')
+
+select * from artikal_smetka_a
+
+insert into artikal_smetka_a(id_artikal, id_smetka, kolicina)
+	values(1,200,15),(2,100,5),(3,300,25)
+
+--Задача 3 (7 поени): Во табелата артикал, 
+--дополнително додај колона kategorija од тип text.
+
+alter table artikal_a
+	add column kategorija varchar(100)
+
+select * from artikal_a
+
+--Задача 4 (10 поени): Во табелата smetka, 
+--сетирај ги статусите на сите сметки како platena.
+
+update smetka_a set status_smetka='platena'
+
+select * from smetka_a
+
+--Задача 5 (10 поени): Излистај ги сите луѓе (chovek) (*) 
+--на кои името им содржи “ана“ на 
+--било која позиција (кирилица или латиница) и се родени во март.
+
+--08 07 999 455019
+
+insert into chovek
+values(5503999455019, 'Marijana', 1),(0802999455019, 'ana', 1),(0803999455019, 'АНАqwe', 1)
+
+select * from chovek where 
+	(ime ilike '%ana%' or ime ilike '%ана%' or ime ilike '%ANA%' or ime ilike '%АНА%')
+	and substring(embg from 3 for 2) in ('03')
+
+--Задача 6 (10 поени): Од табелата прегледи излистајте ги сите прегледи 
+--кои се направени во тековниот месец од минатата година. 
+	
+select * from pregled where
+	extract(month from datum_pregled) = extract(month from now())
+	and extract (year from datum_pregled) = extract(year from now())
+	
+	
+--Задача 7 (25+10 поени):
+	
+create table genericki_lek_a(
+	id_lek integer primary key,
+	ime varchar(100) not null,
+	atc integer not null,
+	generik integer not null
+)
+
+insert into genericki_lek_a
+	values(1,'ime1',100,1000),(2,'ime2',200,2000),(3,'ime3',300,3000)
+
+select * from genericki_lek_a
+
+create table specificen_lek_a(
+	id_spec_lek integer primary key,
+	ime_lek varchar(100) not null,
+	id_lek integer not null,
+	constraint fk_specifiecn_lek_geneircki_lek_a foreign key (id_lek) references genericki_lek_a(id_lek)
+)
+	
+insert into specificen_lek_a
+	values(11, 'spec_ime1', 1),(22, 'spec_ime2', 1),(3, 'spec_ime1', 3)
+
+select * from specificen_lek_a
+
+create table smetka_aa(
+	id_smetka integer primary key,
+	vreme_smetka timestamp not null
+)
+
+insert into smetka_aa values(111, '11-22-2022 15:00:00'),(222,'9-20-2020 17:17:38'),(333,'05-05-2019 20:35:55')
+
+select * from recept_a
+
+create table recept_a(
+	id_recept integer primary key,
+	datum_izdavanje date not null,
+	datum_realiziranje date not null,
+	doziranje integer not null,
+	id_lek integer not null,
+	id_smetka integer not null,
+	constraint fk_id_lek_a foreign key (id_lek) references genericki_lek_a(id_lek),
+	constraint fk_smetka foreign key (id_smetka) references smetka_aa(id_smetka)
+)
+
+select * from recept_a
+
+insert into recept_a
+	values(10000,'11-20-2022', '11-22-2022', 15, 1, 111),
+	(20000,'10-18-2022', '10-20-2022', 12, 2, 222),
+	(30000, '5-05-2022', '5-10-2022', 10, 3, 333)
+
+create table se_sostoi_a(
+	id_smetka integer not null,
+	id_spec_lek integer not null,
+	constraint pk_se_sostoi_a primary key (id_smetka, id_spec_lek),
+	constraint fk_se_sostoi_smetka foreign key (id_smetka) references smetka_aa(id_smetka),
+	constraint fk_se_sostoi_spec_lek foreign key (id_spec_lek) references specificen_lek_a(id_spec_lek)
+)
+
+select * from se_sostoi_a
+
+insert into se_sostoi_a
+	values(111, 11),(222,22),(333,3)
+
